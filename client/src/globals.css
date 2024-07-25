@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background: var(--tg-theme-secondary-bg-color, white);
+    padding: 0;
+    margin: 0;
+    user-select: none;
+  }
+}
+
+@layer utilities {
+  .link {
+    text-decoration: none;
+    color: white;
+  }
+
+  /* UTILITIES */
+  .invert-white {
+    @apply invert brightness-0 transition;
+  }
+}
