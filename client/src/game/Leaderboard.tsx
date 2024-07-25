@@ -1,14 +1,10 @@
 import { type FC, useState, useEffect } from 'react';
-import { useInitData, type User } from '@telegram-apps/sdk-react';
 import axios from 'axios';
-
-import { Link } from '../components/Link';
 
 const ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
 
 export const Leaderboard: FC = () => {
-  const initData = useInitData();
-
+  
   const [leaderboard, setLeaderboard] = useState([]);
 
   const fetchUsers = async () => {
