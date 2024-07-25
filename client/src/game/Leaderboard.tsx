@@ -11,7 +11,7 @@ export const Leaderboard: FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev/api/users');
+      const response = await axios.get('https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev/api/v1/users');
       setLeaderboard(response.data.documents);
     } catch (error) {
       console.log(error.message);

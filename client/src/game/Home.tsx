@@ -35,7 +35,7 @@ export const Home: React.FC = () => {
 	const fetchUserById = async (id) => {
     console.log(id);
 		try {
-      const response = await axios.get(`https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev/api/users/${id}`);
+      const response = await axios.get(`https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev/api/v1/users/${id}`);
       setUser(response.data);
 			
 			setHighScore(response.data.Highscore)
@@ -69,7 +69,7 @@ export const Home: React.FC = () => {
   if (score > highScore) {
     const updateValue = { newHighScore: score };
 
-		axios.post(`https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev/api/${initData.user.id}`, { newHighScore: score })
+		axios.post(`https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev/api/v1/users/${initData.user.id}`, { newHighScore: score })
       .then(response => {
       console.log('User updated successfully:', response.data);
     })
