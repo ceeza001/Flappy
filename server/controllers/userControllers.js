@@ -26,7 +26,7 @@ export const createUser = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      sdk.Query.orderAsc('Highscore')
+      sdk.Query.orderDesc('Highscore')
     ]);
     res.status(200).json(existingUsers);
   } catch (error) {
