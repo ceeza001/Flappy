@@ -1,5 +1,10 @@
 import { database } from "../index.js";
-const COLLECTION_ID = "669e667b0019c49c7456";
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
+const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 
 export const createUser = async (req, res) => {
   const { telegram_id, first_name, username } = req.body;
@@ -19,21 +24,26 @@ export const createUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const data = await database.listDocuments(COLLECTION_ID, undefined, undefined, undefined, undefined, "DESC" );
-    res.status(200).json(data);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID);
+    res.status(200).json(existingUsers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
 export const getUser = async (req, res) => {
-  const id = req.params.id;
-
+  const { id } = req.params;
   try {
-    const user = await database.listDocument(COLLECTION_ID, id);
-    res.status(200).json(user);
+    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      sdk.Query.equal('telegram_id', id)
+    ]);
+    if (existingUsers.documents.length > 0) {
+      res.status(200).json(existingUsers.documents[0]);
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
   } catch (error) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -51,16 +61,16 @@ export const updateUser = (req, res) => {
 
 export const updateUserHighScore = async (req, res) => {
   const { newHighScore } = req.body;
-  const { userId } = req.params;
+  const { id } = req.params;
 
   try {
-    const users = await database.listDocuments(COLLECTION_ID, [
-      sdk.Query.equal('telegram_id', userId.toString())
+    const users = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      sdk.Query.equal('telegram_id', id.toString())
     ]);
-
+    console.log(users);
     if (users.documents.length > 0) {
-      const documentId = users.documents[0].$id; // Assuming the document ID is needed for the update
-      const updatedUser = await database.updateDocument(COLLECTION_ID, documentId, {
+      const documentId = users.documents[0].$id;
+      const updatedUser = await database.updateDocument(process.env.APPWRITE_DATABASE_ID, documentId, {
         highScore: newHighScore,
       });
       res.status(200).json(updatedUser);

@@ -1,4 +1,4 @@
-run = "cd client && npm run dev"
+run = "cd server && npm start"
 entrypoint = "src/App.tsx"
 
 hidden = [".config", "tsconfig.json", "tsconfig.node.json", "vite.config.js", ".gitignore"]
