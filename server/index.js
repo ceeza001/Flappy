@@ -100,3 +100,5 @@ app.listen(PORT, () => {
     process.exit(1); // exit the process with an error code
   }
 })();
+
+export default app;  // Ensure proper export for Vercel
