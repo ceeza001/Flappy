@@ -10,13 +10,13 @@ const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 export const createUser = async (req, res) => {
   const { telegram_id, first_name, username } = req.body;
   const newUser = {
-    telegram_id: telegram_id,
-    first_name: first_name,
-    username: username,
+    telegram_id,
+    first_name,
+    username,
     created_date: Date.now(),
   };
   try {
-    const createdData = await database.createDocument(COLLECTION_ID, newUser);
+    const createdData = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', newUser);
     res.status(201).json(createdData);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -26,7 +26,7 @@ export const createUser = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      sdk.Query.orderAsc(('Highscore'),
+      sdk.Query.orderAsc('Highscore')
     ]);
     res.status(200).json(existingUsers);
   } catch (error) {
@@ -37,7 +37,9 @@ export const getUsers = async (req, res) => {
 export const getUser = async (req, res) => {
   const { id } = req.params;
   try {
-    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID);
+    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      sdk.Query.equal('telegram_id', id.toString())
+    ]);
     if (existingUsers.documents.length > 0) {
       res.status(200).json(existingUsers.documents[0]);
     } else {
@@ -48,13 +50,13 @@ export const getUser = async (req, res) => {
   }
 };
 
-export const updateUser = (req, res) => {
+export const updateUser = async (req, res) => {
   const id = req.params.id;
   const updatedUser = req.body;
 
   try {
-    const newUser = database.updateDocument(COLLECTION_ID, id, updatedUser);
-    res.status(201).json(newUser);
+    const newUser = await database.updateDocument(DATABASE_ID, COLLECTION_ID, id, updatedUser);
+    res.status(200).json(newUser);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -68,10 +70,9 @@ export const updateUserHighScore = async (req, res) => {
     const users = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
       sdk.Query.equal('telegram_id', id.toString())
     ]);
-    console.log(users);
     if (users.documents.length > 0) {
       const documentId = users.documents[0].$id;
-      const updatedUser = await database.updateDocument(process.env.APPWRITE_DATABASE_ID, documentId, {
+      const updatedUser = await database.updateDocument(DATABASE_ID, COLLECTION_ID, documentId, {
         highScore: newHighScore,
       });
       res.status(200).json(updatedUser);
