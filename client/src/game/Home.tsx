@@ -3,11 +3,12 @@ import { useInitData, useLaunchParams, type User } from '@telegram-apps/sdk-reac
 import { motion } from 'framer-motion';
 import axios from "axios";
 
-
 import { Link } from '../components/Link';
 import { ConnectWallet } from '../components/ConnectWallet';
 import FlappyBirdGame from './FlappyBirdGame';
 import Loader from '../components/Loader';
+
+const ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
 
 export const Home: React.FC = () => {
 	const initData = useInitData();
@@ -35,7 +36,7 @@ export const Home: React.FC = () => {
 	const fetchUserById = async (id) => {
     console.log(id);
 		try {
-      const response = await axios.get(`https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev/api/v1/users/${id}`);
+      const response = await axios.get(`${ENDPOINT}/api/v1/users/${id}`);
       setUser(response.data);
 			
 			setHighScore(response.data.Highscore)
@@ -61,7 +62,7 @@ export const Home: React.FC = () => {
 	}, []);
 
 	if (!initData && !user) return null;
-  console.log(initData.user);
+  
 	const updateGameOver = useCallback(async (score) => {
   setGameOver(true);
   setLastScore(score);
@@ -69,7 +70,7 @@ export const Home: React.FC = () => {
   if (score > highScore) {
     const updateValue = { newHighScore: score };
 
-		axios.post(`https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev/api/v1/users/${initData.user.id}`, { newHighScore: score })
+		axios.post(`${ENDPOINT}/api/v1/users/${initData.user.id}`, { newHighScore: score })
       .then(response => {
       console.log('User updated successfully:', response.data);
     })
