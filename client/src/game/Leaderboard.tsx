@@ -13,7 +13,7 @@ export const Leaderboard: FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('${ENDPOINT}/api/v1/users');
+      const response = await axios.get(`${ENDPOINT}/api/v1/users`);
       setLeaderboard(response.data.documents);
     } catch (error) {
       console.log(error.message);

@@ -38,7 +38,7 @@ export const Home: React.FC = () => {
 		try {
       const response = await axios.get(`${ENDPOINT}/api/v1/users/${id}`);
       setUser(response.data);
-			
+			console.log(response.data);
 			setHighScore(response.data.Highscore)
     } catch (error) {
       if (error.response && error.response.status === 404) {
@@ -48,7 +48,7 @@ export const Home: React.FC = () => {
       }
     }
   };
-
+console.log(user);
   useEffect(() => {
 		fetchUserById(initData.user.id);
   }, []);

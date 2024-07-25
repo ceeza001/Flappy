@@ -1,5 +1,6 @@
 import { database } from "../index.js";
 import dotenv from 'dotenv';
+import sdk from 'node-appwrite';
 
 dotenv.config();
 
@@ -24,7 +25,9 @@ export const createUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID);
+    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      sdk.Query.orderAsc(('Highscore'),
+    ]);
     res.status(200).json(existingUsers);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -34,9 +37,7 @@ export const getUsers = async (req, res) => {
 export const getUser = async (req, res) => {
   const { id } = req.params;
   try {
-    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      sdk.Query.equal('telegram_id', id)
-    ]);
+    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID);
     if (existingUsers.documents.length > 0) {
       res.status(200).json(existingUsers.documents[0]);
     } else {
