@@ -67,8 +67,6 @@ export const Home: React.FC = () => {
       setLastScore(score);
 
       if (score > highScore) {
-        const updateValue = { newHighScore: score };
-
         axios
           .post(`${ENDPOINT}/api/v1/users/${playerid}`, { newHighScore: score })
           .then((response) => {
@@ -79,6 +77,12 @@ export const Home: React.FC = () => {
           });
 
         setHighScore(score);
+
+        // Submit high score to Telegram
+        var xmlhttp = new XMLHttpRequest();
+        var url = `https://YOUR_URL_HERE/highscore/${score}?id=${playerid}`;
+        xmlhttp.open("GET", url, true);
+        xmlhttp.send();
       }
     },
     [highScore, playerid]
