@@ -185,7 +185,7 @@ export const Home: React.FC = () => {
 							</div>
 							<div className="leading-[130%] flex flex-col justify-center">
 								<h2 className="font-black text-[19px]">Ceeza</h2>
-								<h1 className="font-bold text-dim text-[16px]">#007</h1>
+								<h1 className="font-bold text-dim text-[16px]">#{playerid}</h1>
 							</div>
 						</div>
 
