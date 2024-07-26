@@ -8,7 +8,6 @@ import {
   useThemeParams,
   useViewport,
 } from '@telegram-apps/sdk-react';
-import { AppRoot } from '@telegram-apps/telegram-ui';
 import { type FC, useState, useEffect, useMemo } from 'react';
 import {
   Navigate,
@@ -58,10 +57,7 @@ export const App: FC = () => {
   };
 
   return (
-    <AppRoot
-      appearance={miniApp.isDark ? 'dark' : 'light'}
-      platform={['macos', 'ios'].includes(lp.platform) ? 'ios' : 'base'}
-    >
+    <>
       {loading && (
         <section className="fixed top w-screen h-screen bg-black z-[900]">
           <SplashScreen onLoaded={handleLoaded} />
@@ -73,6 +69,6 @@ export const App: FC = () => {
           <Route path='*' element={<Navigate to='/'/>}/>
         </Routes>
       </Router>
-    </AppRoot>
+    </>
   );
 };
