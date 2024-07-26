@@ -76,7 +76,11 @@ export const Home: React.FC = () => {
 		setHighScore(score);
   }
 }, [highScore]);
-	
+
+	var url = new URL(location.href);
+  var playerid = url.searchParams.get("id");
+
+	console.log(playerid);
 	return (
 		<>
 			{gameMode ? (
