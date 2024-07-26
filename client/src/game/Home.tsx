@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useInitData, useLaunchParams, type User } from '@telegram-apps/sdk-react';
 import { motion } from 'framer-motion';
 import axios from "axios";
 
-import { Link } from '../components/Link';
 import { ConnectWallet } from '../components/ConnectWallet';
 import FlappyBirdGame from './FlappyBirdGame';
 import Loader from '../components/Loader';
@@ -11,8 +9,6 @@ import Loader from '../components/Loader';
 const ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
 
 export const Home: React.FC = () => {
-	const initData = useInitData();
-	
 	const [gameMode, setGameMode] = useState<boolean>(false);
 	const [gameOver, setGameOver] = useState<boolean>(true);
 	const [currentFrame, setCurrentFrame] = useState<number>(0);
@@ -34,7 +30,7 @@ export const Home: React.FC = () => {
 	};
 
 	const fetchUserById = async (id) => {
-    console.log(id);
+    
 		try {
       const response = await axios.get(`${ENDPOINT}/api/v1/users/${id}`);
       setUser(response.data);
@@ -48,9 +44,9 @@ export const Home: React.FC = () => {
       }
     }
   };
-console.log(user);
+
   useEffect(() => {
-		fetchUserById(initData.user.id);
+		fetchUserById(101);
   }, []);
 	
 	useEffect(() => {
@@ -61,8 +57,7 @@ console.log(user);
 		return () => clearInterval(frameInterval);
 	}, []);
 
-	if (!initData && !user) return null;
-  
+	
 	const updateGameOver = useCallback(async (score) => {
   setGameOver(true);
   setLastScore(score);
@@ -70,7 +65,7 @@ console.log(user);
   if (score > highScore) {
     const updateValue = { newHighScore: score };
 
-		axios.post(`${ENDPOINT}/api/v1/users/${initData.user.id}`, { newHighScore: score })
+		axios.post(`${ENDPOINT}/api/v1/users/1`, { newHighScore: score })
       .then(response => {
       console.log('User updated successfully:', response.data);
     })
@@ -80,7 +75,7 @@ console.log(user);
 		
 		setHighScore(score);
   }
-}, [highScore, initData.user.id]);
+}, [highScore]);
 	
 	return (
 		<>
@@ -185,8 +180,8 @@ console.log(user);
 								/>
 							</div>
 							<div className="leading-[130%] flex flex-col justify-center">
-								<h2 className="font-black text-[19px]">{initData.user.firstName}</h2>
-								<h1 className="font-bold text-dim text-[16px]">#{initData.user.id}</h1>
+								<h2 className="font-black text-[19px]">Ceeza</h2>
+								<h1 className="font-bold text-dim text-[16px]">#007</h1>
 							</div>
 						</div>
 
@@ -225,14 +220,14 @@ console.log(user);
 									ease: [0, 0.71, 0.2, 1.01]
 								}}
 							>
-							<Link to='/leaderboard' className="flex items-center gap-2 w-full bg-[#121417] border-2 border-[#1F1F22] text-white rounded-lg py-4 px-2 cursor-pointer">
+							<button to='/leaderboard' className="flex items-center gap-2 w-full bg-[#121417] border-2 border-[#1F1F22] text-white rounded-lg py-4 px-2 cursor-pointer">
 								<img 
 									src="/assets/UI/rank.svg"
 									alt="rank"
 									className="w-4 h-4 invert-white"
 								/>
 								Leaderboard
-							</Link>
+							</button>
 						</motion.div>
 
 						<motion.div
@@ -245,14 +240,14 @@ console.log(user);
 									ease: [0, 0.71, 0.2, 1.01]
 								}}
 							>
-							<Link to='/shop' className="flex items-center gap-2 w-full bg-blue-500 text-white rounded-lg px-2 py-4 cursor-pointer hover:bg-blue-700">
+							<button to='/shop' className="flex items-center gap-2 w-full bg-blue-500 text-white rounded-lg px-2 py-4 cursor-pointer hover:bg-blue-700">
 								<img 
 									src="/assets/UI/shop.svg"
 									alt="shop"
 									className="w-4 h-4 invert-white"
 								/>
 								<>SHOP</>
-							</Link>
+							</button>
 						</motion.div>
 
 						<motion.div

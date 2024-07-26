@@ -1,12 +1,31 @@
-import ReactDOM from 'react-dom/client';
+import React, { useMemo, useEffect } from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { TonConnectUIProvider } from '@tonconnect/ui-react';
+import { App } from "./App";
 
-import { Root } from './Root';
+const Root = () => {
+  const manifestUrl = useMemo(() => {
+    return new URL('tonconnect-manifest.json', window.location.href).toString();
+  }, []);
 
-// Uncomment this import in case, you would like to develop the application even outside
-// the Telegram application, just in your browser.
-import './mockEnv.ts';
+  const debug = true; // or set this based on some condition
 
-import '@telegram-apps/telegram-ui/dist/styles.css';
-import './globals.css';
+  useEffect(() => {
+    if (debug) {
+      import('eruda').then((lib) => lib.default.init());
+    }
+  }, [debug]);
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<Root/>);
+  return (
+    <React.StrictMode>
+      <BrowserRouter>
+        <TonConnectUIProvider manifestUrl={manifestUrl}>
+          <App />
+        </TonConnectUIProvider>
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById("root")!).render(<Root />);
