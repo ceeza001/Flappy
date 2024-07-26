@@ -74,6 +74,20 @@ bot.start(async (ctx) => {
   }
 });
 
+bot.onText(/\/echo (.+)/, function (msg, match) {
+  var fromId = msg.from.id;
+  var resp = match[1];
+  bot.sendMessage(fromId, resp);
+});
+
+// Any kind of message
+bot.on('message', function (msg) {
+  var chatId = msg.chat.id;
+  // photo can be: a file path, a stream or a Telegram file_id
+  var photo = 'cats.png';
+  bot.sendPhoto(chatId, photo, {caption: 'Lovely kittens'});
+});
+
 bot.on('callback_query', async (ctx) => {
   const query = ctx.callbackQuery;
   if (query.game_short_name !== gameName) {
