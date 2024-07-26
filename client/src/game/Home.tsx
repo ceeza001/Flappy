@@ -16,7 +16,10 @@ export const Home: React.FC = () => {
 	const [highScore, setHighScore] = useState(0);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [user, setUser] = useState(null);
-	
+
+	const urlParams = new URLSearchParams(window.location.search);
+  const playerid = urlParams.get('user');
+
 	const frames = [1, 2, 3];
 	
 	const gameToggle = () => {
@@ -46,7 +49,7 @@ export const Home: React.FC = () => {
   };
 
   useEffect(() => {
-		fetchUserById(101);
+		fetchUserById(playerid);
   }, []);
 	
 	useEffect(() => {
@@ -57,7 +60,8 @@ export const Home: React.FC = () => {
 		return () => clearInterval(frameInterval);
 	}, []);
 
-	
+	if (!user) return null;
+  
 	const updateGameOver = useCallback(async (score) => {
   setGameOver(true);
   setLastScore(score);
@@ -65,7 +69,7 @@ export const Home: React.FC = () => {
   if (score > highScore) {
     const updateValue = { newHighScore: score };
 
-		axios.post(`${ENDPOINT}/api/v1/users/1`, { newHighScore: score })
+		axios.post(`${ENDPOINT}/api/v1/users/${playerid}`, { newHighScore: score })
       .then(response => {
       console.log('User updated successfully:', response.data);
     })
@@ -75,13 +79,8 @@ export const Home: React.FC = () => {
 		
 		setHighScore(score);
   }
-}, [highScore]);
-
-	const urlParams = new URLSearchParams(window.location.search);
-  const playerid = urlParams.get('user');
-
-  console.log('User ID:', playerid);
-
+}, [highScore, playerid]);
+	
 	return (
 		<>
 			{gameMode ? (
@@ -185,8 +184,8 @@ export const Home: React.FC = () => {
 								/>
 							</div>
 							<div className="leading-[130%] flex flex-col justify-center">
-								<h2 className="font-black text-[19px]">Ceeza</h2>
-								<h1 className="font-bold text-dim text-[16px]">#{playerid}</h1>
+								<h2 className="font-black text-[19px]">{user?.first_name}</h2>
+								<h1 className="font-bold text-dim text-[16px]">#{user?.id}</h1>
 							</div>
 						</div>
 

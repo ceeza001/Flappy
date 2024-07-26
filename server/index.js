@@ -78,12 +78,29 @@ bot.onText(/\/start/, async (msg) => {
   }
 });
 
-bot.on("callback_query", (query) => {
+bot.on("callback_query", async (query) => {
   if (query.game_short_name !== gameName) {
     bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.game_short_name}' is not available.` });
   } else {
-    const userId = query.from.id; // Get user ID from the query
-    const gameurl = `${gameURL}/index.html?id=${query.id}&user=${userId}`; // Add user ID to the game URL
+    const user = query.from; // Get user ID from the query
+    const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`; // Add user ID to the game URL
+    
+    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      sdk.Query.equal('telegram_id', user.id.toString())
+    ]);
+
+    if (existingUsers.documents.length > 0) {
+      console.log('User already exists in database:', existingUsers.documents[0]);
+    } else {
+      const response = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
+        telegram_id: user.id.toString(),
+        first_name: user.first_name,
+        username: user.username
+      });
+
+      console.log('User created in database:', response);
+    }
+    
     bot.answerCallbackQuery({
       callback_query_id: query.id,
       url: gameurl
