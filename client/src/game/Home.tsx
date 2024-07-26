@@ -80,7 +80,7 @@ export const Home: React.FC = () => {
 
         // Submit high score to Telegram
         var xmlhttp = new XMLHttpRequest();
-        var url = `https://YOUR_URL_HERE/highscore/${score}?id=${playerid}`;
+        var url = `${ENDPOINT}/highscore/${score}?id=${playerid}`;
         xmlhttp.open("GET", url, true);
         xmlhttp.send();
       }
