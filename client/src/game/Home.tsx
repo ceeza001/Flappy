@@ -67,22 +67,16 @@ export const Home: React.FC = () => {
       setLastScore(score);
 
       if (score > highScore) {
-        axios
-          .post(`${ENDPOINT}/api/v1/users/${playerid}`, { newHighScore: score })
-          .then((response) => {
-            console.log('User updated successfully:', response.data);
-          })
-          .catch((error) => {
-            console.error('Error updating user:', error.response ? error.response.data : error.message);
-          });
+        try {
+          const response = await axios.post(`${ENDPOINT}/api/v1/users/${playerid}`, { newHighScore: score });
+          console.log('User updated successfully:', response.data);
+          setHighScore(score);
 
-        setHighScore(score);
-
-        // Submit high score to Telegram
-        var xmlhttp = new XMLHttpRequest();
-        var url = `${ENDPOINT}/highscore/${score}?id=${playerid}`;
-        xmlhttp.open("GET", url, true);
-        xmlhttp.send();
+          // Submit high score to Telegram
+          await axios.get(`${ENDPOINT}/highscore/${score}?id=${playerid}`);
+        } catch (error) {
+          console.error('Error updating user:', error.response ? error.response.data : error.message);
+        }
       }
     },
     [highScore, playerid]

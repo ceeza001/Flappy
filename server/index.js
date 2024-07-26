@@ -62,16 +62,13 @@ bot.onText(/\/start/, async (msg) => {
       sdk.Query.equal('telegram_id', user.id.toString())
     ]);
 
-    if (existingUsers.documents.length > 0) {
-      console.log('User already exists in database:', existingUsers.documents[0]);
-    } else {
-      const response = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
+    if (existingUsers.documents.length === 0) {
+      await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
         telegram_id: user.id.toString(),
         first_name: user.first_name,
         username: user.username
       });
 
-      console.log('User created in database:', response);
     }
   } catch (error) {
     console.error('Error checking/creating user in database:', error);
@@ -89,9 +86,7 @@ bot.on("callback_query", async (query) => {
       sdk.Query.equal('telegram_id', user.id.toString())
     ]);
 
-    if (existingUsers.documents.length > 0) {
-      console.log('User already exists in database:', existingUsers.documents[0]);
-    } else {
+    if (existingUsers.documents.length === 0) {
       const response = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
         telegram_id: user.id.toString(),
         first_name: user.first_name,
