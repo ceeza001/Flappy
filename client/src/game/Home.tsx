@@ -77,10 +77,11 @@ export const Home: React.FC = () => {
   }
 }, [highScore]);
 
-	var url = new URL(location.href);
-  var playerid = url.searchParams.get("id");
+	const urlParams = new URLSearchParams(window.location.search);
+  const playerid = urlParams.get('user');
 
-	console.log(playerid);
+  console.log('User ID:', playerid);
+
 	return (
 		<>
 			{gameMode ? (

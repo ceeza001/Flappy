@@ -55,7 +55,7 @@ bot.onText(/\/start/, async (msg) => {
   bot.sendMessage(msg.chat.id, message, { reply_markup: keyboard });
 
   const user = msg.from;
-  console.log(user);
+  console.log(msg);
 
   try {
     const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
@@ -82,7 +82,8 @@ bot.on("callback_query", (query) => {
   if (query.game_short_name !== gameName) {
     bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.game_short_name}' is not available.` });
   } else {
-    const gameurl = `${gameURL}/index.html?id=${query.id}`;
+    const userId = query.from.id; // Get user ID from the query
+    const gameurl = `${gameURL}/index.html?id=${query.id}&user=${userId}`; // Add user ID to the game URL
     bot.answerCallbackQuery({
       callback_query_id: query.id,
       url: gameurl
@@ -91,9 +92,8 @@ bot.on("callback_query", (query) => {
 });
 
 bot.on("inline_query", function(iq) {
-  bot.answerInlineQuery(iq.id, [ { type: "game", id: "0", game_short_name: gameName } ] );
+  bot.answerInlineQuery(iq.id, [{ type: "game", id: "0", game_short_name: gameName }]);
 });
-
 
 // Express Route
 app.get('/', (req, res) => {
@@ -101,7 +101,7 @@ app.get('/', (req, res) => {
 });
 
 app.get("/highscore/:score", function(req, res, next) {
-  if (!Object.hasOwnProperty.call(queries, req.query.id)) return   next();
+  if (!Object.hasOwnProperty.call(queries, req.query.id)) return next();
   let query = queries[req.query.id];
   let options;
   if (query.message) {
@@ -115,8 +115,7 @@ app.get("/highscore/:score", function(req, res, next) {
     };
   }
 
-  bot.setGameScore(query.from.id, parseInt(req.params.score),  options,
-  function (err, result) {});
+  bot.setGameScore(query.from.id, parseInt(req.params.score), options, function (err, result) {});
 });
 
 // Server Listener
