@@ -16,6 +16,8 @@ const BOT_USERNAME = process.env.BOT_USERNAME;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = process.env.BASE_URL;
+const gameName = "flappy";
+const gameURL = "https://t.me/flappy_beta_bot/Start"
 
 // Telegram Bot setup
 const bot = new Telegraf(TOKEN);
@@ -41,7 +43,7 @@ client
 bot.start(async (ctx) => {
   const message = 'Welcome! Click the button below to start the app.';
   const keyboard = Markup.inlineKeyboard([
-    Markup.button.url('Start App', 'https://t.me/flappy_beta_bot/Start')
+    Markup.button.url('Start App', gameURL)
   ]);
 
   ctx.reply(message, keyboard);
@@ -69,6 +71,16 @@ bot.start(async (ctx) => {
     }
   } catch (error) {
     console.error('Error checking/creating user in database:', error);
+  }
+});
+
+bot.on('callback_query', async (ctx) => {
+  const query = ctx.callbackQuery;
+  if (query.game_short_name !== gameName) {
+    await ctx.answerCallbackQuery({ text: `Sorry, '${query.game_short_name}' is not available.` });
+  } else {
+    let gameurl = `${gameURL}?id=${query.id}`;
+    await ctx.answerCallbackQuery({ url: gameurl });
   }
 });
 
@@ -101,4 +113,4 @@ app.listen(PORT, () => {
   }
 })();
 
-export default app;  // Ensure proper export for Vercel
+export default app;
