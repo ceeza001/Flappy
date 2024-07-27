@@ -5,12 +5,11 @@ import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import { App } from "./App";
 
 const Root = () => {
-  const manifestUrl = useMemo(() => {
-    return new URL('tonconnect-manifest.json', window.location.href).toString();
-  }, []);
+  const manifestUrl = "https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev:8080/tonconnect-manifest.json"
 
   const debug = true; // or set this based on some condition
-
+  console.log(manifestUrl);
+  
   useEffect(() => {
     if (debug) {
       import('eruda').then((lib) => lib.default.init());

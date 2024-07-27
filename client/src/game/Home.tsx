@@ -16,6 +16,7 @@ export const Home: React.FC = () => {
   const [highScore, setHighScore] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   const urlParams = new URLSearchParams(window.location.search);
   const playerid = urlParams.get('user');
@@ -82,7 +83,26 @@ export const Home: React.FC = () => {
     [highScore, playerid]
   );
 
-  if (!user) return null;
+  window.onload = async function() {
+    try {
+      if (window.solana) {
+        const solana = window.solana;
+        if (solana.isPhantom) {
+          console.log('Phantom wallet found!');
+          const res = await solana.connect({ onlyIfTrusted: true });
+          console.log(
+            'Connected with Public Key:',
+            res.publicKey.toString()
+          );
+          setWalletAddress(res.publicKey.toString());
+        }
+      } else {
+        console.log('wallet not found');
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   return (
     <>
@@ -148,6 +168,12 @@ export const Home: React.FC = () => {
           <div className="absolute pointer-events-none inset-0 flex items-center justify-center bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
           <header className="fixed top-0 left-0 w-full flex justify-between items-center p-5">
             <div className="text-2xl font-bold">Flappy bird</div>
+
+            {!walletAddress ? (
+              <button>Connect Wallet</button>
+            ) : (
+              <p>Address</p>
+            )}
             <ConnectWallet />
           </header>
           <div className="absolute top-[5rem] left-2 flex flex-col gap-2">

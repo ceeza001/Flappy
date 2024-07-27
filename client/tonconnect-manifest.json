@@ -1,0 +1,5 @@
+{
+    "url": "https://flappy-theta.vercel.app/",                        // required
+    "name": "Flappy-bird",                      // required
+    "iconUrl": "https://ton.vote/logo.png",
+}

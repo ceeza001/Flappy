@@ -8,11 +8,12 @@ import './globals.css';
 
 export const App: FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
-
+  
   const handleLoaded = () => {
     setLoading(false);
   };
 
+  
   return (
     <>
       {loading && (
