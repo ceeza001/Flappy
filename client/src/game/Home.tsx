@@ -65,7 +65,7 @@ export const Home: React.FC = () => {
   }, [frames.length]);
 
   const updateGameOver = useCallback(
-  async (score: number) => {
+  async (score: number, queryId:number) => {
     setGameOver(true);
     setLastScore(score);
 
@@ -79,9 +79,8 @@ export const Home: React.FC = () => {
         // Submit high score to Telegram
         const url=`${ENDPOINT}/highscore/${score}?id=${queryId}`
         console.log(url);
-        if (url) {
-          const res = await axios.get(url);
-        }
+        const res = await axios.get(url);
+        
          console.log('High score submitted successfully:', res.data);
       } catch (error) {
         console.error('Error updating user or submitting high score:', error.response ? error.response.data : error.message);
