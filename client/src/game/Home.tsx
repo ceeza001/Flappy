@@ -21,7 +21,8 @@ export const Home: React.FC = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const queryId = urlParams.get('id');
   const playerId = urlParams.get('user');
-
+  console.log('queryId:', queryId);
+  
   const frames = [1, 2, 3];
 
   const gameToggle = () => {
