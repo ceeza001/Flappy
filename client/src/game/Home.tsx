@@ -65,25 +65,30 @@ export const Home: React.FC = () => {
   }, [frames.length]);
 
   const updateGameOver = useCallback(
-    async (score: number) => {
-      setGameOver(true);
-      setLastScore(score);
+  async (score: number) => {
+    setGameOver(true);
+    setLastScore(score);
 
-      if (score) {
-        try {
-          const response = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
-          console.log('User updated successfully:', response.data);
-          setHighScore(score);
+    if (score && queryId) {
+      try {
+        // Update the user's high score
+        const response = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
+        console.log('User updated successfully:', response.data);
+        setHighScore(score);
 
-          // Submit high score to Telegram
-          await axios.get(`${ENDPOINT}/highscore/${score}?id=${queryId}`);
-        } catch (error) {
-          console.error('Error updating user:', error.response ? error.response.data : error.message);
-        }
+        // Submit high score to Telegram
+        const res = await axios.get(`${ENDPOINT}/highscore/${score}?id=${queryId}`);
+        console.log('High score submitted successfully:', res.data);
+      } catch (error) {
+        console.error('Error updating user or submitting high score:', error.response ? error.response.data : error.message);
       }
-    },
-    [highScore, queryId]
-  );
+    } else {
+      console.log('No score or query ID found');
+    }
+  },
+  [score, queryId, playerId, ENDPOINT]
+);
+  
 
   window.onload = async function() {
     try {
