@@ -85,8 +85,7 @@ bot.on("callback_query", async (query) => {
     bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.game_short_name}' is not available.` });
   } else {
     const user = query.from;
-    const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`;
-
+    console.log('call:', query.id);
     try {
       const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
         sdk.Query.equal('telegram_id', user.id.toString())
@@ -104,7 +103,10 @@ bot.on("callback_query", async (query) => {
 
       queries[query.id] = query; // Save the query for later reference
 
+      const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`;
+    
       bot.answerCallbackQuery(query.id, { url: gameurl });
+      console.log(queries);
     } catch (error) {
       console.error('Error handling callback query:', error);
       bot.answerCallbackQuery(query.id, { text: 'An error occurred. Please try again.' });
@@ -118,6 +120,8 @@ bot.on("inline_query", (iq) => {
 
 // Route to handle high score updates
 app.get("/highscore/:score", async (req, res, next) => {
+  console.log('answer demo:');
+  console.log('answer:', req, res);
   const queryId = req.query.id;
   if (!queries[queryId]) {
     console.error(`Query ID ${queryId} not found`);
