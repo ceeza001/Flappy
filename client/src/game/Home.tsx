@@ -79,8 +79,10 @@ export const Home: React.FC = () => {
         // Submit high score to Telegram
         const url=`${ENDPOINT}/highscore/${score}?id=${queryId}`
         console.log(url);
-        const res = await axios.get(url);
-        console.log('High score submitted successfully:', res.data);
+        if (url) {
+          const res = await axios.get(url);
+        }
+         console.log('High score submitted successfully:', res.data);
       } catch (error) {
         console.error('Error updating user or submitting high score:', error.response ? error.response.data : error.message);
       }
