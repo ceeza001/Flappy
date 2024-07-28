@@ -67,7 +67,7 @@ export const Home: React.FC = () => {
       setGameOver(true);
       setLastScore(score);
 
-      if (score > highScore) {
+      if (score) {
         try {
           const response = await axios.post(`${ENDPOINT}/api/v1/users/${playerid}`, { newHighScore: score });
           console.log('User updated successfully:', response.data);

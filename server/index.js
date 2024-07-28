@@ -11,12 +11,13 @@ const app = express();
 const PORT = process.env.PORT || 80;
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const BOT_USERNAME = process.env.BOT_USERNAME;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = process.env.BASE_URL;
-const gameName = "Flaps";
+const gameName = "flappy";
 const gameURL = "https://flappy-theta.vercel.app/";
+
+const queries = {};
 
 // Ensure all necessary environment variables are set
 if (!TOKEN || !DATABASE_ID || !COLLECTION_ID || !BASE_URL) {
@@ -79,7 +80,7 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 bot.on("callback_query", async (query) => {
-  if (query.game_short_name !== gameName) {
+  if (query.data !== gameName) {
     bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.data}' is not available.` });
   } else {
     const user = query.from;
@@ -100,6 +101,8 @@ bot.on("callback_query", async (query) => {
         console.log('User created in database:', response);
       }
 
+      queries[query.id] = query; // Save the query for later reference
+
       bot.answerCallbackQuery(query.id, { url: gameurl });
     } catch (error) {
       console.error('Error handling callback query:', error);
@@ -112,18 +115,13 @@ bot.on("inline_query", (iq) => {
   bot.answerInlineQuery(iq.id, [{ type: "game", id: "0", game_short_name: gameName }]);
 });
 
-// Express Route
-app.get('/', (req, res) => {
-  res.send('Hello, this is the Telegram bot server');
-});
-
-// Define `queries` object to hold game score queries
-const queries = {};
-
 // Route to handle high score updates
 app.get("/highscore/:score", async (req, res, next) => {
   const queryId = req.query.id;
-  if (!queries[queryId]) return next();
+  if (!queries[queryId]) {
+    console.error(`Query ID ${queryId} not found`);
+    return res.status(404).send('Query ID not found');
+  }
 
   let query = queries[queryId];
   let options;
@@ -146,6 +144,11 @@ app.get("/highscore/:score", async (req, res, next) => {
     console.error('Error setting game score:', err);
     res.status(500).send('Internal Server Error');
   }
+});
+
+// Express Route
+app.get('/', (req, res) => {
+  res.send('Hello, this is the Telegram bot server');
 });
 
 // Server Listener
