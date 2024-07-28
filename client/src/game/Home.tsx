@@ -19,7 +19,8 @@ export const Home: React.FC = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   const urlParams = new URLSearchParams(window.location.search);
-  const playerid = urlParams.get('user');
+  const queryId = urlParams.get('id');
+  const playerId = urlParams.get('user');
 
   const frames = [1, 2, 3];
 
@@ -49,10 +50,10 @@ export const Home: React.FC = () => {
   };
 
   useEffect(() => {
-    if (playerid) {
-      fetchUserById(playerid);
+    if (playerId) {
+      fetchUserById(playerId);
     }
-  }, [playerid]);
+  }, [playerId]);
 
   useEffect(() => {
     const frameInterval = setInterval(() => {
@@ -74,13 +75,13 @@ export const Home: React.FC = () => {
           setHighScore(score);
 
           // Submit high score to Telegram
-          await axios.get(`${ENDPOINT}/highscore/${score}?id=${playerid}`);
+          await axios.get(`${ENDPOINT}/highscore/${score}?id=${queryId}`);
         } catch (error) {
           console.error('Error updating user:', error.response ? error.response.data : error.message);
         }
       }
     },
-    [highScore, playerid]
+    [highScore, queryId]
   );
 
   window.onload = async function() {
