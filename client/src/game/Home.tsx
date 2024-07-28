@@ -70,6 +70,9 @@ export const Home: React.FC = () => {
       setGameOver(true);
       setLastScore(score);
 
+      const url = `${ENDPOINT}/highscore/${score}?id=${queryId}`;
+      console.log(url);
+          
       if (score && queryId && playerId) {
         try {
           // Update the user's high score
@@ -78,8 +81,6 @@ export const Home: React.FC = () => {
           setHighScore(score);
 
           // Submit high score to Telegram
-          const url = `${ENDPOINT}/highscore/${score}?id=${queryId}`;
-          console.log(url);
           const res = await axios.get(url);
 
           console.log('High score submitted successfully:', res.data);
