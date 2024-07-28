@@ -68,7 +68,6 @@ bot.onText(/\/start/, async (msg) => {
         first_name: user.first_name,
         username: user.username
       });
-
     }
   } catch (error) {
     console.error('Error checking/creating user in database:', error);
@@ -81,7 +80,7 @@ bot.on("callback_query", async (query) => {
   } else {
     const user = query.from; // Get user ID from the query
     const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`; // Add user ID to the game URL
-    
+
     const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
       sdk.Query.equal('telegram_id', user.id.toString())
     ]);
@@ -95,7 +94,7 @@ bot.on("callback_query", async (query) => {
 
       console.log('User created in database:', response);
     }
-    
+
     bot.answerCallbackQuery({
       callback_query_id: query.id,
       url: gameurl
@@ -112,10 +111,17 @@ app.get('/', (req, res) => {
   res.send('Hello, this is the Telegram bot server');
 });
 
-app.get("/highscore/:score", function(req, res, next) {
-  if (!Object.hasOwnProperty.call(queries, req.query.id)) return next();
-  let query = queries[req.query.id];
+// Define `queries` object to hold game score queries
+const queries = {};
+
+// Route to handle high score updates
+app.get("/highscore/:score", async function(req, res, next) {
+  const queryId = req.query.id;
+  if (!queries[queryId]) return next();
+
+  let query = queries[queryId];
   let options;
+
   if (query.message) {
     options = {
       chat_id: query.message.chat.id,
@@ -127,7 +133,13 @@ app.get("/highscore/:score", function(req, res, next) {
     };
   }
 
-  bot.setGameScore(query.from.id, parseInt(req.params.score), options, function (err, result) {});
+  try {
+    const result = await bot.setGameScore(query.from.id, parseInt(req.params.score), options);
+    res.status(200).send(result);
+  } catch (err) {
+    console.error('Error setting game score:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 // Server Listener
