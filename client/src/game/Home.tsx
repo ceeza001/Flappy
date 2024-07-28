@@ -21,8 +21,9 @@ export const Home: React.FC = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const queryId = urlParams.get('id');
   const playerId = urlParams.get('user');
+
   console.log('queryId:', queryId);
-  
+
   const frames = [1, 2, 3];
 
   const gameToggle = () => {
@@ -65,54 +66,50 @@ export const Home: React.FC = () => {
   }, [frames.length]);
 
   const updateGameOver = useCallback(
-  async (score: number, queryId:number) => {
-    setGameOver(true);
-    setLastScore(score);
+    async (score: number) => {
+      setGameOver(true);
+      setLastScore(score);
 
-    if (score && queryId) {
-      try {
-        // Update the user's high score
-        const response = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
-        console.log('User updated successfully:', response.data);
-        setHighScore(score);
+      if (score && queryId && playerId) {
+        try {
+          // Update the user's high score
+          const response = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
+          console.log('User updated successfully:', response.data);
+          setHighScore(score);
 
-        // Submit high score to Telegram
-        const url=`${ENDPOINT}/highscore/${score}?id=${queryId}`
-        console.log(url);
-        const res = await axios.get(url);
-        
-         console.log('High score submitted successfully:', res.data);
-      } catch (error) {
-        console.error('Error updating user or submitting high score:', error.response ? error.response.data : error.message);
+          // Submit high score to Telegram
+          const url = `${ENDPOINT}/highscore/${score}?id=${queryId}`;
+          console.log(url);
+          const res = await axios.get(url);
+
+          console.log('High score submitted successfully:', res.data);
+        } catch (error) {
+          console.error('Error updating user or submitting high score:', error.response ? error.response.data : error.message);
+        }
+      } else {
+        console.log('No score, query ID, or player ID found');
       }
-    } else {
-      console.log('No score or query ID found');
-    }
-  },
-  [highScore, queryId, playerId, ENDPOINT]
-);
-  
+    },
+    [highScore, queryId, playerId, ENDPOINT]
+  );
 
-  window.onload = async function() {
+  window.onload = async function () {
     try {
       if (window.solana) {
         const solana = window.solana;
         if (solana.isPhantom) {
           console.log('Phantom wallet found!');
           const res = await solana.connect({ onlyIfTrusted: true });
-          console.log(
-            'Connected with Public Key:',
-            res.publicKey.toString()
-          );
+          console.log('Connected with Public Key:', res.publicKey.toString());
           setWalletAddress(res.publicKey.toString());
         }
       } else {
-        console.log('wallet not found');
+        console.log('Wallet not found');
       }
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
 
   return (
     <>
@@ -177,7 +174,7 @@ export const Home: React.FC = () => {
         <main className="h-[100dvh] w-full text-white bg-black bg-dot-white/[0.2] relative">
           <div className="absolute pointer-events-none inset-0 flex items-center justify-center bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
           <header className="fixed top-0 left-0 w-full flex justify-between items-center p-5">
-            <div className="text-2xl font-bold">Flappy bird</div>
+            <div className="text-2xl font-bold">Flappy Bird</div>
             <ConnectWallet />
           </header>
           <div className="absolute top-[5rem] left-2 flex flex-col gap-2">
