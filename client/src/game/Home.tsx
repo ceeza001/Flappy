@@ -70,7 +70,7 @@ export const Home: React.FC = () => {
 
       if (score) {
         try {
-          const response = await axios.post(`${ENDPOINT}/api/v1/users/${playerid}`, { newHighScore: score });
+          const response = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
           console.log('User updated successfully:', response.data);
           setHighScore(score);
 
