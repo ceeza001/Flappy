@@ -77,7 +77,9 @@ export const Home: React.FC = () => {
         setHighScore(score);
 
         // Submit high score to Telegram
-        const res = await axios.get(`${ENDPOINT}/highscore/${score}?id=${queryId}`);
+        const url=`${ENDPOINT}/highscore/${score}?id=${queryId}`
+        console.log(url);
+        const res = await axios.get(url);
         console.log('High score submitted successfully:', res.data);
       } catch (error) {
         console.error('Error updating user or submitting high score:', error.response ? error.response.data : error.message);
@@ -86,7 +88,7 @@ export const Home: React.FC = () => {
       console.log('No score or query ID found');
     }
   },
-  [score, queryId, playerId, ENDPOINT]
+  [highScore, queryId, playerId, ENDPOINT]
 );
   
 
