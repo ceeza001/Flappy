@@ -14,7 +14,7 @@ const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = process.env.BASE_URL;
-const gameName = "flappy";
+const gameName = "Flaps";
 const gameURL = "https://flappy-theta.vercel.app/";
 
 const queries = {};
@@ -80,8 +80,9 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 bot.on("callback_query", async (query) => {
-  if (query.data !== gameName) {
-    bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.data}' is not available.` });
+  
+  if (query.game_short_name !== gameName) {
+    bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.game_short_name}' is not available.` });
   } else {
     const user = query.from;
     const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`;
