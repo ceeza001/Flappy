@@ -168,12 +168,6 @@ export const Home: React.FC = () => {
           <div className="absolute pointer-events-none inset-0 flex items-center justify-center bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
           <header className="fixed top-0 left-0 w-full flex justify-between items-center p-5">
             <div className="text-2xl font-bold">Flappy bird</div>
-
-            {!walletAddress ? (
-              <button>Connect Wallet</button>
-            ) : (
-              <p>Address</p>
-            )}
             <ConnectWallet />
           </header>
           <div className="absolute top-[5rem] left-2 flex flex-col gap-2">

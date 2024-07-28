@@ -73,7 +73,7 @@ export const updateUserHighScore = async (req, res) => {
     if (users.documents.length > 0) {
       const documentId = users.documents[0].$id;
       const updatedUser = await database.updateDocument(DATABASE_ID, COLLECTION_ID, documentId, {
-        highScore: newHighScore,
+        Highscore: newHighScore,
       });
       res.status(200).json(updatedUser);
     } else {

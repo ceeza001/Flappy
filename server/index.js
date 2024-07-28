@@ -15,7 +15,7 @@ const BOT_USERNAME = process.env.BOT_USERNAME;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = process.env.BASE_URL;
-const gameName = "flappy";
+const gameName = "Flaps";
 const gameURL = "https://flappy-theta.vercel.app/";
 
 // Ensure all necessary environment variables are set
@@ -24,8 +24,12 @@ if (!TOKEN || !DATABASE_ID || !COLLECTION_ID || !BASE_URL) {
   process.exit(1);
 }
 
-// Telegram Bot setup
+// Telegram Bot setup with long polling
 const bot = new TelegramBot(TOKEN, { polling: true });
+
+bot.on('polling_error', (error) => {
+  console.error('Polling error:', error);
+});
 
 // Middleware
 app.use(express.json());
@@ -76,33 +80,35 @@ bot.onText(/\/start/, async (msg) => {
 
 bot.on("callback_query", async (query) => {
   if (query.game_short_name !== gameName) {
-    bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.game_short_name}' is not available.` });
+    bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.data}' is not available.` });
   } else {
-    const user = query.from; // Get user ID from the query
-    const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`; // Add user ID to the game URL
+    const user = query.from;
+    const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`;
 
-    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      sdk.Query.equal('telegram_id', user.id.toString())
-    ]);
+    try {
+      const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+        sdk.Query.equal('telegram_id', user.id.toString())
+      ]);
 
-    if (existingUsers.documents.length === 0) {
-      const response = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
-        telegram_id: user.id.toString(),
-        first_name: user.first_name,
-        username: user.username
-      });
+      if (existingUsers.documents.length === 0) {
+        const response = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
+          telegram_id: user.id.toString(),
+          first_name: user.first_name,
+          username: user.username
+        });
 
-      console.log('User created in database:', response);
+        console.log('User created in database:', response);
+      }
+
+      bot.answerCallbackQuery(query.id, { url: gameurl });
+    } catch (error) {
+      console.error('Error handling callback query:', error);
+      bot.answerCallbackQuery(query.id, { text: 'An error occurred. Please try again.' });
     }
-
-    bot.answerCallbackQuery({
-      callback_query_id: query.id,
-      url: gameurl
-    });
   }
 });
 
-bot.on("inline_query", function(iq) {
+bot.on("inline_query", (iq) => {
   bot.answerInlineQuery(iq.id, [{ type: "game", id: "0", game_short_name: gameName }]);
 });
 
@@ -115,7 +121,7 @@ app.get('/', (req, res) => {
 const queries = {};
 
 // Route to handle high score updates
-app.get("/highscore/:score", async function(req, res, next) {
+app.get("/highscore/:score", async (req, res, next) => {
   const queryId = req.query.id;
   if (!queries[queryId]) return next();
 
