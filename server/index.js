@@ -16,8 +16,8 @@ const BOT_USERNAME = process.env.BOT_USERNAME;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = "https://flappy-server.vercel.app";
-gameURL = "flappy-theta.vercel.app";
-gameName = "Flaps";
+const gameURL = "flappy-theta.vercel.app";
+const gameName = "Flaps";
 
 // Telegram Bot setup
 const bot = new Telegraf(TOKEN);
