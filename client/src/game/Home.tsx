@@ -73,7 +73,7 @@ export const Home: React.FC = () => {
       const url = `${ENDPOINT}/highscore/${score}?id=${queryId}`;
       console.log(url);
           
-      if (score && queryId && playerId) {
+      if (score > highScore) {
         try {
           // Submit high score to Telegram
           const response = await axios.get(url);
