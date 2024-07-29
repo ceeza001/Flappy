@@ -16,7 +16,7 @@ const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = process.env.BASE_URL;
 const gameName = "Flaps";
 const gameURL = "https://flappy-theta.vercel.app";
-const TELEGRAM_WEBHOOK_URL = `https://flappy-server.vercel.app/bot${TOKEN}`;
+const TELEGRAM_WEBHOOK_URL = `${BASE_URL}/bot${TOKEN}`;
 
 const queries = {};
 
@@ -39,6 +39,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use("/", router);
+
+// Webhook route
+app.post(`/bot${TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
 
 // Appwrite Client Setup
 const client = new sdk.Client();
@@ -152,12 +158,6 @@ app.get("/highscore/:score", async (req, res, next) => {
 // Express Route
 app.get('/', (req, res) => {
   res.send('Hello, this is the Telegram bot server');
-});
-
-// Webhook route
-app.post(`/bot${TOKEN}`, (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
 });
 
 // Server Listener
