@@ -23,7 +23,7 @@ const queries = {};
 
 // Telegram Bot setup
 const bot = new Telegraf(TOKEN);
-
+console.log(bot.telegram.setGameScore);
 // Middleware to transfer data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -134,7 +134,7 @@ app.get("/highscore/:score", async (req, res, next) => {
   }
 
   try {
-    const result = await bot.setGameScore(query.from.id, parseInt(req.params.score), options);
+    const result = await bot.telegram.setGameScore(query.from.id, parseInt(req.params.score), options);
     res.status(200).send(result);
   } catch (err) {
     console.error('Error setting game score:', err);
