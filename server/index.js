@@ -109,7 +109,10 @@ bot.on('inline_query', (ctx) => {
   }]);
 });
 
+// Route to handle high score updates
 app.get("/highscore/:score", async (req, res, next) => {
+  console.log('answer demo:');
+  console.log('answer:', req, res);
   const queryId = req.query.id;
   if (!queries[queryId]) {
     console.error(`Query ID ${queryId} not found`);
