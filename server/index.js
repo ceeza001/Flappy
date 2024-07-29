@@ -109,8 +109,7 @@ bot.on('inline_query', (ctx) => {
   }]);
 });
 
-
-app.get("/highscore/:score", async (req, res) => {
+app.get("/highscore/:score", async (req, res, next) => {
   const queryId = req.query.id;
   if (!queries[queryId]) {
     console.error(`Query ID ${queryId} not found`);
@@ -132,7 +131,7 @@ app.get("/highscore/:score", async (req, res) => {
   }
 
   try {
-    const result = await bot.telegram.setGameScore(query.from.id, parseInt(req.params.score), options);
+    const result = await bot.setGameScore(query.from.id, parseInt(req.params.score), options);
     res.status(200).send(result);
   } catch (err) {
     console.error('Error setting game score:', err);
