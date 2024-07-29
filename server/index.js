@@ -19,6 +19,8 @@ const BASE_URL = "https://flappy-server.vercel.app";
 const gameURL = "https://flappy-theta.vercel.app";
 const gameName = "Flaps";
 
+const queries = {};
+
 // Telegram Bot setup
 const bot = new Telegraf(TOKEN);
 
