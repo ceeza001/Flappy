@@ -1,6 +1,5 @@
 import express from 'express';
-import { Telegraf, Markup } from 'telegraf';
-import axios from 'axios';
+import TelegramBot from 'node-telegram-bot-api';
 import sdk from 'node-appwrite';
 import cors from 'cors';
 import router from './routes/routes.js';
@@ -12,93 +11,169 @@ const app = express();
 const PORT = process.env.PORT || 80;
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const BOT_USERNAME = process.env.BOT_USERNAME;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = process.env.BASE_URL;
+const gameName = "Flaps";
+const gameURL = "https://flappy-theta.vercel.app";
+const TELEGRAM_WEBHOOK_URL = `${BASE_URL}/bot${TOKEN}`;
 
-// Telegram Bot setup
-const bot = new Telegraf(TOKEN);
+const queries = {};
 
-// Middleware to transfer data
+// Ensure all necessary environment variables are set
+if (!TOKEN || !DATABASE_ID || !COLLECTION_ID || !BASE_URL) {
+  console.error('Missing necessary environment variables.');
+  process.exit(1);
+}
+
+// Telegram Bot setup with webhook
+const bot = new TelegramBot(TOKEN);
+bot.setWebHook(TELEGRAM_WEBHOOK_URL).then(() => {
+  console.log(`Webhook set to ${TELEGRAM_WEBHOOK_URL}`);
+}).catch(error => {
+  console.error('Error setting webhook:', error);
+});
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-
-// Use router
 app.use("/", router);
 
-// Connection with Appwrite database
-let client = new sdk.Client();
-export const database = new sdk.Databases(client);
+// Webhook route
+app.post(`/bot${TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+// Appwrite Client Setup
+const client = new sdk.Client();
 
 client
-  .setEndpoint(process.env.APPWRITE_ENDPOINT) // Your API Endpoint
-  .setProject(process.env.APPWRITE_PROJECT_ID) // Your project ID
-  .setKey(process.env.APPWRITE_API_KEY); // Your secret API key
+  .setEndpoint(process.env.APPWRITE_ENDPOINT)
+  .setProject(process.env.APPWRITE_PROJECT_ID)
+  .setKey(process.env.APPWRITE_API_KEY);
 
-// Start command
-bot.start(async (ctx) => {
+const database = new sdk.Databases(client);
+
+// Bot Commands and Message Handlers
+bot.onText(/\/start/, async (msg) => {
   const message = 'Welcome! Click the button below to start the app.';
-  const keyboard = Markup.inlineKeyboard([
-    Markup.button.url('Start App', 'https://t.me/flappy_beta_bot/Start')
-  ]);
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: "Start", callback_data: gameName }]
+    ]
+  };
 
-  ctx.reply(message, keyboard);
+  bot.sendMessage(msg.chat.id, message, { reply_markup: keyboard });
 
-  const user = ctx.from;
-  console.log(user);
-  
-  // Check if user already exists
+  const user = msg.from;
+
   try {
     const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
       sdk.Query.equal('telegram_id', user.id.toString())
     ]);
 
-    if (existingUsers.documents.length > 0) {
-      console.log('User already exists in database:', existingUsers.documents[0]);
-    } else {
-      // Create a document in the Appwrite database
-      const response = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
+    if (existingUsers.documents.length === 0) {
+      await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
         telegram_id: user.id.toString(),
         first_name: user.first_name,
         username: user.username
       });
-
-      console.log('User created in database:', response);
     }
   } catch (error) {
     console.error('Error checking/creating user in database:', error);
   }
 });
 
-// Error handling
-bot.catch((err, ctx) => {
-  console.log(`Update ${ctx.updateType} caused error ${err}`);
+bot.on("callback_query", async (query) => {
+  if (query.game_short_name !== gameName) {
+    bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.game_short_name}' is not available.` });
+  } else {
+    const user = query.from;
+
+    try {
+      const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+        sdk.Query.equal('telegram_id', user.id.toString())
+      ]);
+
+      if (existingUsers.documents.length === 0) {
+        const response = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
+          telegram_id: user.id.toString(),
+          first_name: user.first_name,
+          username: user.username
+        });
+
+        console.log('User created in database:', response);
+      }
+
+      queries[query.id] = query; // Save the query for later reference
+
+      const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`;
+
+      bot.answerCallbackQuery(query.id, { url: gameurl });
+      console.log(queries);
+    } catch (error) {
+      console.error('Error handling callback query:', error);
+      bot.answerCallbackQuery(query.id, { text: 'An error occurred. Please try again.' });
+    }
+  }
 });
 
-// Express route to handle webhook
-app.use(bot.webhookCallback('/bot'));
+bot.on("inline_query", (iq) => {
+  bot.answerInlineQuery(iq.id, [{ type: "game", id: "0", game_short_name: gameName }]);
+});
 
-bot.telegram.setWebhook(`${BASE_URL}/bot`);
+// Route to handle high score updates
+app.get("/highscore/:score", async (req, res, next) => {
+  const queryId = req.query.id;
+  if (!queries[queryId]) {
+    console.error(`Query ID ${queryId} not found`);
+    return res.status(404).send('Query ID not found');
+  }
 
+  let query = queries[queryId];
+  let options;
+
+  if (query.message) {
+    options = {
+      chat_id: query.message.chat.id,
+      message_id: query.message.message_id
+    };
+  } else {
+    options = {
+      inline_message_id: query.inline_message_id
+    };
+  }
+
+  try {
+    const result = await bot.setGameScore(query.from.id, parseInt(req.params.score), options);
+    res.status(200).send(result);
+  } catch (err) {
+    console.error('Error setting game score:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Express Route
 app.get('/', (req, res) => {
   res.send('Hello, this is the Telegram bot server');
 });
 
-// Listening to port
+// Server Listener
 app.listen(PORT, () => {
-  console.log(`Server Running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
 
-// Connect to the database and start the server
+// Database Connection and Server Initialization
 (async () => {
   try {
     console.log('Successfully connected to the database');
   } catch (error) {
     console.error('Failed to connect to the database', error);
-    process.exit(1); // exit the process with an error code
+    process.exit(1);
   }
 })();
 
-export default app;  // Ensure proper export for Vercel
+export { database };
+export default app;
