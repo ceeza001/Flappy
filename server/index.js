@@ -15,8 +15,8 @@ const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const BOT_USERNAME = process.env.BOT_USERNAME;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
-const BASE_URL = "https://flappy-server.vercel.app";
-const gameURL = "https://flappy-theta.vercel.app";
+const BASE_URL = "https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev";
+const gameURL = "https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev:8080";
 const gameName = "Flaps";
 
 const queries = {};
