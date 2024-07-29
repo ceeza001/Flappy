@@ -16,6 +16,7 @@ const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = process.env.BASE_URL;
 const gameName = "Flaps";
 const gameURL = "https://flappy-theta.vercel.app";
+const TELEGRAM_WEBHOOK_URL = `https://flappy-server.vercel.app/bot${TOKEN}`;
 
 const queries = {};
 
@@ -25,11 +26,12 @@ if (!TOKEN || !DATABASE_ID || !COLLECTION_ID || !BASE_URL) {
   process.exit(1);
 }
 
-// Telegram Bot setup with long polling
-const bot = new TelegramBot(TOKEN, { polling: true });
-
-bot.on('polling_error', (error) => {
-  console.error('Polling error:', error);
+// Telegram Bot setup with webhook
+const bot = new TelegramBot(TOKEN);
+bot.setWebHook(TELEGRAM_WEBHOOK_URL).then(() => {
+  console.log(`Webhook set to ${TELEGRAM_WEBHOOK_URL}`);
+}).catch(error => {
+  console.error('Error setting webhook:', error);
 });
 
 // Middleware
@@ -60,7 +62,6 @@ bot.onText(/\/start/, async (msg) => {
   bot.sendMessage(msg.chat.id, message, { reply_markup: keyboard });
 
   const user = msg.from;
-  console.log(msg);
 
   try {
     const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
@@ -80,12 +81,11 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 bot.on("callback_query", async (query) => {
-
   if (query.game_short_name !== gameName) {
     bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.game_short_name}' is not available.` });
   } else {
     const user = query.from;
-    console.log('call:', query.id);
+
     try {
       const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
         sdk.Query.equal('telegram_id', user.id.toString())
@@ -120,8 +120,6 @@ bot.on("inline_query", (iq) => {
 
 // Route to handle high score updates
 app.get("/highscore/:score", async (req, res, next) => {
-  console.log('answer demo:');
-  console.log('answer:', req, res);
   const queryId = req.query.id;
   if (!queries[queryId]) {
     console.error(`Query ID ${queryId} not found`);
@@ -154,6 +152,12 @@ app.get("/highscore/:score", async (req, res, next) => {
 // Express Route
 app.get('/', (req, res) => {
   res.send('Hello, this is the Telegram bot server');
+});
+
+// Webhook route
+app.post(`/bot${TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
 });
 
 // Server Listener
