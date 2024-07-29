@@ -15,7 +15,7 @@ const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const BOT_USERNAME = process.env.BOT_USERNAME;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
-const BASE_URL = process.env.BASE_URL;
+const BASE_URL = "https://flappy-server.vercel.app";
 
 // Telegram Bot setup
 const bot = new Telegraf(TOKEN);
