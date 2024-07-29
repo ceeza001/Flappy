@@ -75,6 +75,7 @@ bot.on('callback_query', async (ctx) => {
     await ctx.answerCbQuery(`Sorry, '${query.data}' is not available.`);
   } else {
     const user = query.from; // Get user ID from the query
+    queries[query.id] = query;
     const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`; // Add user ID to the game URL
     
     try {
