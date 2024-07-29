@@ -1,5 +1,6 @@
 import express from 'express';
-import TelegramBot from 'node-telegram-bot-api';
+import { Telegraf } from 'telegraf';
+import axios from 'axios';
 import sdk from 'node-appwrite';
 import cors from 'cors';
 import router from './routes/routes.js';
@@ -11,7 +12,6 @@ const app = express();
 const PORT = process.env.PORT || 80;
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const BOT_USERNAME = process.env.BOT_USERNAME;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = process.env.BASE_URL;
@@ -25,7 +25,21 @@ if (!TOKEN || !DATABASE_ID || !COLLECTION_ID || !BASE_URL) {
 }
 
 // Telegram Bot setup
-const bot = new TelegramBot(TOKEN, { polling: true });
+const bot = new Telegraf(TOKEN);
+
+// Set the webhook
+const setWebhook = async () => {
+  try {
+    const webhookUrl = `${BASE_URL}/bot${TOKEN}`;
+    await axios.post(`https://api.telegram.org/bot${TOKEN}/setWebhook`, {
+      url: webhookUrl
+    });
+    console.log(`Webhook set to ${webhookUrl}`);
+  } catch (error) {
+    console.error('Error setting webhook:', error);
+    process.exit(1);
+  }
+};
 
 // Middleware
 app.use(express.json());
@@ -44,7 +58,7 @@ client
 const database = new sdk.Databases(client);
 
 // Bot Commands and Message Handlers
-bot.onText(/\/start/, async (msg) => {
+bot.start(async (ctx) => {
   const message = 'Welcome! Click the button below to start the app.';
   const keyboard = {
     inline_keyboard: [
@@ -52,10 +66,10 @@ bot.onText(/\/start/, async (msg) => {
     ]
   };
 
-  bot.sendMessage(msg.chat.id, message, { reply_markup: keyboard });
+  await ctx.reply(message, { reply_markup: keyboard });
 
-  const user = msg.from;
-  console.log(msg);
+  const user = ctx.from;
+  console.log(ctx.message);
 
   try {
     const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
@@ -68,43 +82,49 @@ bot.onText(/\/start/, async (msg) => {
         first_name: user.first_name,
         username: user.username
       });
-
     }
   } catch (error) {
     console.error('Error checking/creating user in database:', error);
   }
 });
 
-bot.on("callback_query", async (query) => {
-  if (query.game_short_name !== gameName) {
-    bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.game_short_name}' is not available.` });
+bot.on('callback_query', async (ctx) => {
+  const query = ctx.callbackQuery;
+  if (query.data !== gameName) {
+    await ctx.answerCbQuery(`Sorry, '${query.data}' is not available.`);
   } else {
     const user = query.from; // Get user ID from the query
     const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`; // Add user ID to the game URL
     
-    const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      sdk.Query.equal('telegram_id', user.id.toString())
-    ]);
+    try {
+      const existingUsers = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+        sdk.Query.equal('telegram_id', user.id.toString())
+      ]);
 
-    if (existingUsers.documents.length === 0) {
-      const response = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
-        telegram_id: user.id.toString(),
-        first_name: user.first_name,
-        username: user.username
-      });
+      if (existingUsers.documents.length === 0) {
+        const response = await database.createDocument(DATABASE_ID, COLLECTION_ID, 'unique()', {
+          telegram_id: user.id.toString(),
+          first_name: user.first_name,
+          username: user.username
+        });
 
-      console.log('User created in database:', response);
+        console.log('User created in database:', response);
+      }
+
+      await ctx.answerCbQuery(undefined, { url: gameurl });
+    } catch (error) {
+      console.error('Error handling callback query:', error);
+      await ctx.answerCbQuery('An error occurred. Please try again.');
     }
-    
-    bot.answerCallbackQuery({
-      callback_query_id: query.id,
-      url: gameurl
-    });
   }
 });
 
-bot.on("inline_query", function(iq) {
-  bot.answerInlineQuery(iq.id, [{ type: "game", id: "0", game_short_name: gameName }]);
+bot.on('inline_query', (ctx) => {
+  ctx.answerInlineQuery([{
+    type: 'game',
+    id: '0',
+    game_short_name: gameName
+  }]);
 });
 
 // Express Route
@@ -112,10 +132,16 @@ app.get('/', (req, res) => {
   res.send('Hello, this is the Telegram bot server');
 });
 
-app.get("/highscore/:score", function(req, res, next) {
-  if (!Object.hasOwnProperty.call(queries, req.query.id)) return next();
-  let query = queries[req.query.id];
+app.get("/highscore/:score", async (req, res) => {
+  const queryId = req.query.id;
+  if (!queries[queryId]) {
+    console.error(`Query ID ${queryId} not found`);
+    return res.status(404).send('Query ID not found');
+  }
+
+  let query = queries[queryId];
   let options;
+
   if (query.message) {
     options = {
       chat_id: query.message.chat.id,
@@ -127,12 +153,25 @@ app.get("/highscore/:score", function(req, res, next) {
     };
   }
 
-  bot.setGameScore(query.from.id, parseInt(req.params.score), options, function (err, result) {});
+  try {
+    const result = await bot.telegram.setGameScore(query.from.id, parseInt(req.params.score), options);
+    res.status(200).send(result);
+  } catch (err) {
+    console.error('Error setting game score:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Webhook route
+app.post(`/bot${TOKEN}`, (req, res) => {
+  bot.handleUpdate(req.body);
+  res.sendStatus(200);
 });
 
 // Server Listener
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+  await setWebhook();
 });
 
 // Database Connection and Server Initialization
