@@ -15,7 +15,7 @@ const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
 const BASE_URL = process.env.BASE_URL;
 const gameName = "Flaps";
-const gameURL = "https://flappy-theta.vercel.app/";
+const gameURL = "https://flappy-theta.vercel.app";
 
 const queries = {};
 
@@ -80,7 +80,7 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 bot.on("callback_query", async (query) => {
-  
+
   if (query.game_short_name !== gameName) {
     bot.answerCallbackQuery(query.id, { text: `Sorry, '${query.game_short_name}' is not available.` });
   } else {
@@ -104,7 +104,7 @@ bot.on("callback_query", async (query) => {
       queries[query.id] = query; // Save the query for later reference
 
       const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`;
-    
+
       bot.answerCallbackQuery(query.id, { url: gameurl });
       console.log(queries);
     } catch (error) {

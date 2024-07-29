@@ -75,15 +75,13 @@ export const Home: React.FC = () => {
           
       if (score && queryId && playerId) {
         try {
-          // Update the user's high score
-          const response = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
+          // Submit high score to Telegram
+          const response = await axios.get(url);
+          
           console.log('User updated successfully:', response.data);
           setHighScore(score);
 
-          // Submit high score to Telegram
-          const res = await axios.get(url);
-
-          console.log('High score submitted successfully:', res.data);
+          
         } catch (error) {
           console.error('Error updating user or submitting high score:', error.response ? error.response.data : error.message);
         }
