@@ -15,15 +15,15 @@ const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const BOT_USERNAME = process.env.BOT_USERNAME;
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
 const COLLECTION_ID = process.env.APPWRITE_USER_COLLECTION_ID;
-const BASE_URL = "https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev";
-const gameURL = "https://0b11230f-7899-465f-a5b0-441a39bad871-00-4fs9y6wz3wmd.picard.replit.dev:8080";
+const BASE_URL = "https://flappy-server.vercel.app";
+const gameURL = "https://flappy-theta.vercel.app";
 const gameName = "Flaps";
 
 const queries = {};
 
 // Telegram Bot setup
 const bot = new Telegraf(TOKEN);
-console.log(bot.telegram.setGameScore);
+
 // Middleware to transfer data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -71,11 +71,15 @@ bot.start(async (ctx) => {
 
 bot.on('callback_query', async (ctx) => {
   const query = ctx.callbackQuery;
+
+  queries[query.id] = query;
+  
+  
   if (query.game_short_name !== gameName) {
     await ctx.answerCbQuery(`Sorry, '${query.data}' is not available.`);
   } else {
     const user = query.from; // Get user ID from the query
-    queries[query.id] = query;
+    
     const gameurl = `${gameURL}/index.html?id=${query.id}&user=${user.id}`; // Add user ID to the game URL
     
     try {
@@ -110,31 +114,42 @@ bot.on('inline_query', (ctx) => {
 });
 
 // Route to handle high score updates
-app.get("/highscore/:score", async (req, res, next) => {
-  console.log('answer demo:');
-  console.log('answer:', req, res);
-  const queryId = req.query.id;
-  if (!queries[queryId]) {
-    console.error(`Query ID ${queryId} not found`);
-    return res.status(404).send('Query ID not found');
-  }
-
-  let query = queries[queryId];
-  let options;
-
-  if (query.message) {
-    options = {
-      chat_id: query.message.chat.id,
-      message_id: query.message.message_id
-    };
-  } else {
-    options = {
-      inline_message_id: query.inline_message_id
-    };
-  }
-
+app.get("/api/v1/highscore/:score", async (req, res) => {
   try {
-    const result = await bot.telegram.setGameScore(query.from.id, parseInt(req.params.score), options);
+    const id = req.query.id;
+    console.log(req.query)
+    if (!id) {
+      console.error('Query ID not provided');
+      return res.status(400).send('Query ID not provided');
+    }
+
+    const { score } = req.params;
+    const queryId = id.split('=').pop();
+    console.log(`Received score: ${score} for query ID: ${queryId}`);
+
+    // Check if the queryId exists in queries
+    if (!Object.hasOwnProperty.call(queries, queryId)) {
+      console.error(`Query ID ${queryId} not found`);
+      return res.status(400).send('Query ID not found');
+    }
+
+    const query = queries[queryId];
+    let options;
+
+    // Determine options based on the presence of a message object in the query
+    if (query.message) {
+      options = {
+        chat_id: query.message.chat.id,
+        message_id: query.message.message_id,
+      };
+    } else {
+      options = {
+        inline_message_id: query.inline_message_id,
+      };
+    }
+
+    // Set the game score using the Telegram Bot API
+    const result = await bot.telegram.setGameScore(query.from.id, parseInt(score), query.inline_message_id);
     res.status(200).send(result);
   } catch (err) {
     console.error('Error setting game score:', err);

@@ -16,12 +16,9 @@ export const Home: React.FC = () => {
   const [highScore, setHighScore] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const queryId = urlParams.get('id');
-  const playerId = urlParams.get('user');
-
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [queryId, setQueryId] = useState<string | null>(null);
+  
   console.log('queryId:', queryId);
 
   const frames = [1, 2, 3];
@@ -52,10 +49,14 @@ export const Home: React.FC = () => {
   };
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    setQueryId(urlParams.get('id'));
+    setPlayerId(urlParams.get('user'));
+    
     if (playerId) {
       fetchUserById(playerId);
     }
-  }, [playerId]);
+  }, []);
 
   useEffect(() => {
     const frameInterval = setInterval(() => {
@@ -70,13 +71,12 @@ export const Home: React.FC = () => {
       setGameOver(true);
       setLastScore(score);
 
-      const url = `${ENDPOINT}/highscore/${score}?id=${queryId}`;
-      console.log(url);
+      console.log(`${ENDPOINT}/api/v1/highscore/${score}?id=${queryId}`);
           
       if (score > highScore) {
         try {
           // Submit high score to Telegram
-          const response = await axios.get(url);
+          const response = await axios.get(`${ENDPOINT}/api/v1/highscore/${score}?id=${queryId}`);
           
           console.log('User updated successfully:', response.data);
           setHighScore(score);
@@ -91,24 +91,6 @@ export const Home: React.FC = () => {
     },
     [highScore, queryId, playerId, ENDPOINT]
   );
-
-  window.onload = async function () {
-    try {
-      if (window.solana) {
-        const solana = window.solana;
-        if (solana.isPhantom) {
-          console.log('Phantom wallet found!');
-          const res = await solana.connect({ onlyIfTrusted: true });
-          console.log('Connected with Public Key:', res.publicKey.toString());
-          setWalletAddress(res.publicKey.toString());
-        }
-      } else {
-        console.log('Wallet not found');
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   return (
     <>
