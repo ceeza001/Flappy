@@ -19,8 +19,6 @@ export const Home: React.FC = () => {
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [queryId, setQueryId] = useState<string | null>(null);
   
-  console.log('queryId:', queryId);
-
   const frames = [1, 2, 3];
 
   const gameToggle = () => {
@@ -52,7 +50,7 @@ export const Home: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     setQueryId(urlParams.get('id'));
     setPlayerId(urlParams.get('user'));
-    
+    console.log(playerId)
     if (playerId) {
       fetchUserById(playerId);
     }
