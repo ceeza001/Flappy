@@ -35,9 +35,9 @@ export const Home: React.FC = () => {
 
   const fetchUserById = async (id: string) => {
     try {
-      const response = await axios.get(`${ENDPOINT}/api/v1/users/${id}`);
+      const response = await axios.get(`${ENDPOINT}/api/v1/users/${playerId}`);
       setUser(response.data);
-      console.log(response.data);
+      console.log(response);
       setHighScore(response.data.Highscore);
     } catch (error) {
       if (error.response && error.response.status === 404) {
