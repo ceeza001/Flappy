@@ -74,29 +74,33 @@ export const Home: React.FC = () => {
       setGameOver(true);
       setLastScore(score);
 
-      console.log(`${ENDPOINT}/api/v1/highscore/${score}?id=${queryId}`);
-          
+      if (!queryId) {
+        console.log('No query ID found');
+        return;
+      }
+
       if (score > highScore) {
         try {
-          // Submit high score to Telegram
+          // Submit high score to update the user's data
           const res = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
           console.log('User updated successfully:', res.data);
-          
-          const response = await axios.get(`${ENDPOINT}/api/v1/highscore/${score}?id=${queryId}`);
-          
-          console.log('User updated successfully:', response.data);
-          setHighScore(score);
 
-          
+          // Submit high score to Telegram or other service
+          const response = await axios.get(`${ENDPOINT}/api/v1/highscore/${score}?id=${queryId}`);
+          console.log('High score updated successfully:', response.data);
+
+          // Update high score state
+          setHighScore(score);
         } catch (error) {
           console.error('Error updating user or submitting high score:', error.response ? error.response.data : error.message);
         }
       } else {
-        console.log('No score, query ID, or player ID found');
+        console.log('New score is not higher than the current high score');
       }
     },
     [highScore, queryId, playerId, ENDPOINT]
   );
+
 
   return (
     <>
