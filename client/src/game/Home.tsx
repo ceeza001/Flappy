@@ -70,7 +70,7 @@ export const Home: React.FC = () => {
   }, [frames.length]);
 
   const updateGameOver = useCallback(
-    async (score: number) => {
+    async (score: number, playerId: number) => {
       setGameOver(true);
       setLastScore(score);
 
@@ -79,6 +79,9 @@ export const Home: React.FC = () => {
       if (score > highScore) {
         try {
           // Submit high score to Telegram
+          const res = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
+          console.log('User updated successfully:', res.data);
+          
           const response = await axios.get(`${ENDPOINT}/api/v1/highscore/${score}?id=${queryId}`);
           
           console.log('User updated successfully:', response.data);
