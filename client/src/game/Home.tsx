@@ -80,11 +80,11 @@ export const Home: React.FC = () => {
       }
 
       if (score > highScore) {
+        const res = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
+        console.log('User updated successfully:', res.data);
         try {
           // Submit high score to update the user's data
-          const res = await axios.post(`${ENDPOINT}/api/v1/users/${playerId}`, { newHighScore: score });
-          console.log('User updated successfully:', res.data);
-
+          
           // Submit high score to Telegram or other service
           const response = await axios.get(`${ENDPOINT}/api/v1/highscore/${score}?id=${queryId}`);
           console.log('High score updated successfully:', response.data);
