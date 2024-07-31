@@ -35,7 +35,7 @@ export const Home: React.FC = () => {
 
   const fetchUserById = async (id) => {
     try {
-      const response = await axios.get(`${ENDPOINT}/api/v1/users/${id}`);
+      const response = await axios.get(`https://flappy-server.vercel.app/api/v1/users/${id}`);
       setUser(response.data);
       console.log(response.data);
       setHighScore(response.data.Highscore);
