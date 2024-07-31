@@ -33,11 +33,11 @@ export const Home: React.FC = () => {
     }, 3000);
   };
 
-  const fetchUserById = async (id: string) => {
+  const fetchUserById = async (id) => {
     try {
-      const response = await axios.get(`${ENDPOINT}/api/v1/users/${playerId}`);
+      const response = await axios.get(`${ENDPOINT}/api/v1/users/${id}`);
       setUser(response.data);
-      console.log(response);
+      console.log(response.data);
       setHighScore(response.data.Highscore);
     } catch (error) {
       if (error.response && error.response.status === 404) {
@@ -47,13 +47,17 @@ export const Home: React.FC = () => {
       }
     }
   };
-
+  
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    setQueryId(urlParams.get('id'));
-    setPlayerId(urlParams.get('user'));
-    if (playerId) {
-      fetchUserById(playerId);
+    const queryIdParam = urlParams.get('id');
+    const playerIdParam = urlParams.get('user');
+
+    setQueryId(queryIdParam);
+    setPlayerId(playerIdParam);
+   
+    if (playerIdParam) {
+      fetchUserById(playerIdParam);
     }
   }, []);
 
